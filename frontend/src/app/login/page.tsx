@@ -17,18 +17,19 @@ export default function Home() {
     }, [email])
 
     const [password, setPassword] = useState<string>("");
-    const [isInvalidPassword, setIsInvalidPassword] = useState<boolean>(false);
     const [errorMessage, setErrorMessage] = useState<string>("");
     const [isVisible, setIsVisible] = useState<boolean>(false);
     const router = useRouter();
     
-    const handleSubmit = () => {
-        if (isInvalidEmail) {
+    const handleSubmit = async () => {
+        if (isInvalidEmail || email == "" || password.length < 8) {
+            setErrorMessage("Invalid Email/Password")
+            setPassword("");
             return;
         }
 
         // mock for backend
-        fetch("https://jsonplaceholder.typicode.com/session", {
+        const res = await fetch("https://jsonplaceholder.typicode.com/session", {
             method: "Post",
             headers: {
                 Accept: "application/json, text/plain, */*",
@@ -39,26 +40,18 @@ export default function Home() {
                 password: password
             })
         })
-        .then((res) => {
-            if (res.status == 401) {
-                setIsInvalidPassword(true)
-                setErrorMessage("Invalid Credentials");
-                throw new Error("Invalid Credentials");
-            } else if (!res.ok) {
-                setIsInvalidPassword(true)
-                setErrorMessage("We are currently encountering some issues, please try again later");
-                throw new Error("We are currently encountering some issues, please try again later");
-            } else {
-                setIsInvalidPassword(false);
-                return res.json();
-            }
-        })
-        .then((data) => {
-            router.push("/dashboard")
-        })
-        .catch((err: Error) => console.log(err.message));
 
-        setPassword("");
+        if (res.status == 401) {
+            setErrorMessage("Invalid Email/Password");
+            setPassword("");
+            return;
+        } else if (!res.ok) {
+            setErrorMessage("We are currently encountering some issues, please try again later");
+            setPassword("");
+            return;
+        } else {
+            router.push("/dashboard")
+        }
     }
 
     const Eye = () => {
@@ -72,7 +65,7 @@ export default function Home() {
     }
     
     return <div className="w-screen h-screen flex items-center justify-center">
-        <div className="flex flex-wrap md:max-w-md max-w-xs justify-center gap-7">  
+        <div className="flex flex-wrap md:max-w-md max-w-xs justify-center gap-4">  
             <Input isRequired type="email" label="Email" 
                 placeholder="Enter your email" 
                 value={email} onValueChange={setEmail} 
@@ -82,8 +75,10 @@ export default function Home() {
                 />
             <Input isRequired type={isVisible ? "text" : "password"} 
                 label="Password" endContent={<Eye />} 
-                value={password} onValueChange={setPassword}
-                errorMessage={isInvalidPassword && errorMessage} />
+                value={password} onValueChange={setPassword} />
+            {errorMessage ? <p className="text-red-400 text-sm" role="alertdialog" >
+                {errorMessage}
+            </p> : <></>}
             <Button type="submit" color="primary" className="w-full" onClick={handleSubmit}> Login </Button>
             
             <div className="flex gap-3">
