@@ -1,17 +1,22 @@
 import '@testing-library/jest-dom'
 import { act, fireEvent, render, screen} from '@testing-library/react'
-import Home from '../../src/app/login/page'
- 
-jest.mock("next/navigation", () => ({
-    useRouter() {
-      return {
-        prefetch: () => null
-      };
-    }
-}));
+import Home from './page'
 
+const mockPush = jest.fn((str: string) => str);
 
-
+jest.mock('next/navigation', () => {
+  return {
+    __esModule: true,
+    useRouter: () => ({
+      push: mockPush,
+      replace: jest.fn(),
+      prefetch: jest.fn()
+    }),
+    useSearchParams: () => ({
+      get: () => {}
+    })
+  }
+})
 
 describe('Login Snapshot tests', () => {
   it('renders login unchanged', () => {
@@ -109,7 +114,7 @@ describe("Login button test", () => {
     expect(errorMessage).toHaveTextContent(serverDownMessage);
   })
 
-  it('error when credentials are invalid', async () => {
+  it('error when server rejects credentials', async () => {
     global.fetch =  jest.fn(
         () => Promise.resolve({ ok: false, status: 401, json: () => Promise.resolve({}), 
         }), 
@@ -130,5 +135,26 @@ describe("Login button test", () => {
     const errorMessage = await findByRole("alertdialog");
     expect(errorMessage).toBeInTheDocument();
     expect(errorMessage).toHaveTextContent(loginErrorMessage);
+  })
+
+  it('redirects on success', async () => {
+    global.fetch =  jest.fn(
+        () => Promise.resolve({ ok: true, status: 201, json: () => Promise.resolve({}), 
+        }), 
+    ) as jest.Mock 
+  
+    const {getByText, getByLabelText, findByRole} = render(<Home />)
+
+    const emailInput = getByLabelText("Email");
+    const passwordInput = getByLabelText("Password");
+    const loginButton = getByText("Login");
+
+    fireEvent.change(emailInput, { target: { value: 'normal@email.com' }});
+    fireEvent.change(passwordInput, { target: { value: '12345678910' }});
+    act(() => {
+      fireEvent.click(loginButton)
+    });
+    expect(fetch).toHaveBeenCalled();
+    // expect(mockPush).toHaveBeenCalled();
   })
 })

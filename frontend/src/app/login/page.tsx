@@ -29,7 +29,7 @@ export default function Home() {
         }
 
         // mock for backend
-        const res = await fetch("https://jsonplaceholder.typicode.com/session", {
+        const res = await fetch("https://jsonplaceholder.typicode.com/users", {
             method: "Post",
             headers: {
                 Accept: "application/json, text/plain, */*",
