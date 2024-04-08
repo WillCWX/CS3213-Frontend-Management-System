@@ -30,7 +30,7 @@ const getAssignmentsByCourseId = async (
       });
       return;
     }
-    console.log(error)
+    console.log(error);
     response.status(501).json({
       error: "INTERNAL SERVER ERROR",
       message: "An unexpected error has occurred. Please try again later",
@@ -57,7 +57,7 @@ const postCourseAssignment = async (request: Request, response: Response) => {
       return;
     }
 
-    console.log(error)
+    console.log(error);
 
     response.status(501).json({
       error: "INTERNAL SERVER ERROR",

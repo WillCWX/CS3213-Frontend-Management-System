@@ -25,7 +25,7 @@ const getCourse = async (request: Request, response: Response) => {
       });
       return;
     }
-    console.log(error)
+    console.log(error);
     response.status(501).json({
       error: "INTERNAL SERVER ERROR",
       message: "An unexpected error has occurred. Please try again later",
@@ -48,7 +48,7 @@ const postCourse = async (request: Request, response: Response) => {
       });
       return;
     }
-    console.log(error)
+    console.log(error);
     response.status(501).json({
       error: "INTERNAL SERVER ERROR",
       message: "An unexpected error has occurred. Please try again later",
@@ -73,7 +73,7 @@ const updateCourse = async (request: Request, response: Response) => {
       });
       return;
     }
-    console.log(error)
+    console.log(error);
     response.status(501).json({
       error: "INTERNAL SERVER ERROR",
       message: "An unexpected error has occurred. Please try again later",
@@ -96,7 +96,7 @@ const deleteCourse = async (request: Request, response: Response) => {
       });
       return;
     }
-    console.log(error)
+    console.log(error);
     response.status(501).json({
       error: "INTERNAL SERVER ERROR",
       message: "An unexpected error has occurred. Please try again later",
