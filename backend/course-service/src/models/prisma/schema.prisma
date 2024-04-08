@@ -1,0 +1,137 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema", "relationJoins"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("POSTGRESQL_DB_URL")
+  schemas  = ["assignments", "courses", "users"]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model Course {
+  name              String
+  description       String?             @default("")
+  createdOn         DateTime            @default(now()) @db.Timestamp(6)
+  uuid              String              @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id                Int                 @id @default(autoincrement())
+  Course_Assignment Course_Assignment[]
+  Course_User       Course_User[]
+
+  @@schema("courses")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model Course_User {
+  courseId String @db.Uuid
+  userId   Int
+  type     String @default("Student")
+  id       Int    @default(autoincrement())
+  Course   Course @relation(fields: [courseId], references: [uuid], onDelete: NoAction, onUpdate: NoAction, map: "courses_Course_User_courseId_fkey")
+  User     User   @relation(fields: [userId], references: [uid], onDelete: Cascade, onUpdate: NoAction, map: "courses_Course_User_userId_fkey")
+
+  @@id([courseId, userId])
+  @@schema("courses")
+}
+
+model User {
+  name        String
+  email       String        @unique
+  major       String
+  course      String?
+  password    String
+  role        String
+  uid         Int           @id @default(autoincrement())
+  Course_User Course_User[]
+
+  @@schema("users")
+}
+
+model Assignment {
+  id                String              @id
+  title             String
+  deadline          DateTime
+  isPublished       Boolean             @default(false)
+  numberOfQuestions Int                 @default(0)
+  authors           String[]
+  createdOn         DateTime            @default(now())
+  updatedOn         DateTime
+  description       String?
+  Question          Question[]
+  Course_Assignment Course_Assignment[]
+
+  @@schema("assignments")
+}
+
+model Question {
+  id                  String             @id
+  title               String
+  description         String
+  deadline            DateTime
+  referenceSolutionId String?
+  numberOfTestCases   Int                @default(0)
+  assignmentId        String?
+  Assignment          Assignment?        @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  ReferenceSolution   ReferenceSolution?
+  TestCase            TestCase[]
+
+  @@schema("assignments")
+}
+
+model ReferenceSolution {
+  id         String   @id
+  language   String
+  code       String
+  codeParser String?
+  questionId String   @unique
+  Question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@schema("assignments")
+}
+
+model TestCase {
+  id         String   @id
+  questionId String
+  input      String
+  output     String
+  isPublic   Boolean  @default(true)
+  Question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@schema("assignments")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model Course_Assignment {
+  id           Int        @default(autoincrement())
+  assignmentId String
+  courseId     String     @db.Uuid
+  Assignment   Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade, map: "courses_Course_Assignment_assignmentId_fkey")
+  Course       Course     @relation(fields: [courseId], references: [uuid], onDelete: Cascade, map: "courses_Course_Assignment_courseId_fkey")
+
+  @@id([assignmentId, courseId])
+  @@schema("courses")
+}
+
+model users {
+  uid      Int     @id @default(autoincrement())
+  email    String  @db.VarChar(255)
+  name     String  @db.VarChar(255)
+  major    String  @db.VarChar(255)
+  course   String? @db.VarChar(255)
+  password String  @db.VarChar(255)
+  role     String  @db.VarChar(60)
+
+  @@schema("users")
+}
+
+/// This enum is commented in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+enum user_type {
+  Student
+  Tutor
+  Professor
+  Administrator
+
+  @@schema("courses")
+}
